@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>AR.js NFT + Sound Autoplay</title>
+  <script src="https://cdn.jsdelivr.net/npm/aframe@1.6.0/dist/aframe-master.min.js"></script>
+  <script src="https://raw.githack.com/AR-js-org/AR.js/master/aframe/build/aframe-ar-nft.js"></script>
+  <style>
+    .arjs-loader {
+      height: 100%;
+      width: 100%;
+      position: absolute;
+      top: 0;
+      left: 0;
+      background-color: rgba(0, 0, 0, 0.8);
+      z-index: 9999;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+    }
+    .arjs-loader div {
+      text-align: center;
+      font-size: 1.25em;
+      color: white;
+    }
+  </style>
+</head>
+
+<body style="margin: 0px; overflow: hidden;">
+  <div class="arjs-loader"><div>Loading, please wait...</div></div>
+
+  <a-scene
+    vr-mode-ui="enabled: false"
+    renderer="logarithmicDepthBuffer: true; precision: medium;"
+    embedded
+    arjs="trackingMethod: best; sourceType: webcam; debugUIEnabled: false;"
+  >
+    <a-nft
+      type="nft"
+      url="https://reinaldncku.github.io/arsample1/nft/trex/trex-image/trex"
+      smooth="true"
+      smoothCount="10"
+      smoothTolerance="0.01"
+      smoothThreshold="5"
+    >
+      <a-entity
+        gltf-model="./trex/scene.gltf"
+        scale="5 5 5"
+        position="150 300 -100">
+      </a-entity>
+
+      <a-entity
+        id="sound-player"
+        sound="src: url(https://reinaldncku.github.io/arsample1/audio/grace.mp3); autoplay: false"
+        crossorigin="anonymous">
+      </a-entity>
+    </a-nft>
+
+    <a-entity camera></a-entity>
+  </a-scene>
+
+  <script>
+    // Attempt to auto-unlock audio context when page loads
+    window.addEventListener("DOMContentLoaded", () => {
+      const soundPlayer = document.querySelector("#sound-player");
+
+      // Try to silently preload audio on mobile by playing/pausing fast
+      const ctx = AFRAME.scenes[0].systems.sound.listener.context;
+      const buffer = ctx.createBuffer(1, 1, 22050);
+      const source = ctx.createBufferSource();
+      source.buffer = buffer;
+      source.connect(ctx.destination);
+      if (ctx.state === 'suspended') {
+        ctx.resume(); // resume the audio context if blocked
+      }
+      source.start(0);
+      source.stop();
+
+      const marker = document.querySelector("a-nft");
+      marker.addEventListener("markerFound", () => {
+        if (soundPlayer.components.sound) {
+          soundPlayer.components.sound.playSound();
+        }
+      });
+    });
+  </script>
+</body>
+</html>
